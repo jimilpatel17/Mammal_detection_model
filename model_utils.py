@@ -28,16 +28,13 @@ def create_mammal_detector_model():
 
 def create_f1_model(num_classes):
     model = models.resnet50(weights=None)
-    model.fc = nn.Sequential(
-        nn.Dropout(0.5),
-        nn.Linear(model.fc.in_features, num_classes)
-    )
+    model.fc = nn.Linear(model.fc.in_features, num_classes)
     return model
 
 class MammalDetector:
     def __init__(self, model_path='models/mammal_detector.pth'):
         self.model = create_mammal_detector_model()
-        self.model.load_state_dict(torch.load(model_path, map_location=device))
+        self.model.load_state_dict(torch.load(model_path, map_location=device, weights_only=False))
         self.model.to(device)
         self.model.eval()
     
@@ -62,7 +59,13 @@ class SpeciesClassifier:
         self.num_classes = len(self.class_names)
         self.model = create_f1_model(self.num_classes)
         
-        state_dict = torch.load(model_path, map_location=device)
+        checkpoint = torch.load(model_path, map_location=device, weights_only=False)
+        
+        if isinstance(checkpoint, dict) and 'model_state_dict' in checkpoint:
+            state_dict = checkpoint['model_state_dict']
+        else:
+            state_dict = checkpoint
+        
         self.model.load_state_dict(state_dict)
         self.model.to(device)
         self.model.eval()
