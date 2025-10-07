@@ -54,16 +54,18 @@ def predict():
         
         jpeg_filepath = convert_to_jpeg(filepath)
         
-        mammal_result = mammal_detector.predict(jpeg_filepath, threshold=0.8)
+        mammal_result = mammal_detector.predict(jpeg_filepath, threshold=0.5)
         
-        if not mammal_result['is_mammal']:
-            result_text = f"<span style='color: #ff6b6b;'>Not a Mammal</span><br>Confidence: {mammal_result['confidence']:.2%}"
+        if not mammal_result['is_mammal'] and mammal_result['confidence'] < 0.2:
+            species_result = species_classifier.predict(jpeg_filepath, confidence_threshold=0.85)
+        elif not mammal_result['is_mammal']:
+            result_text = f"<span style='color: #ff6b6b;'>Not a Mammal</span><br>Confidence: {(1 - mammal_result['confidence']):.2%}"
             return jsonify({
                 'prediction': result_text,
                 'image_url': f'/media/{os.path.basename(jpeg_filepath)}'
             })
-        
-        species_result = species_classifier.predict(jpeg_filepath, confidence_threshold=0.6)
+        else:
+            species_result = species_classifier.predict(jpeg_filepath, confidence_threshold=0.85)
         
         if species_result['is_confident']:
             result_text = f"<span style='color: #51cf66;'>Mammal Detected!</span><br>"
