@@ -1,161 +1,196 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Indian Mammal Species Identifier</title>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
-body { font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background:#1a1a1a; color:#fff; min-height:100vh; padding:40px 20px; }
+body {
+  font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+  background:#1a1a1a; color:#fff; min-height:100vh; padding:40px 20px;
+}
 .container { max-width:800px; margin:0 auto; text-align:center; }
 .header { margin-bottom:40px; }
-.paw-icon { font-size:48px; margin-bottom:20px; opacity:0.8; background-color: #eb0e11;}
+.paw-icon { font-size:48px; margin-bottom:20px; opacity:0.8; background-color:#eb0e11; border-radius:50%; padding:10px; display:inline-block; }
 .title { font-size:48px; font-weight:bold; margin-bottom:30px; line-height:1.2; }
 .description { font-size:16px; color:#ccc; margin-bottom:20px; line-height:1.5; }
 .upload-section { margin:40px 0; }
-.upload-label { font-size:16px; color:#fff; display:block; text-align:left; max-width:600px; margin:0 auto 20px; }
-.upload-area { background:#2a2a2a; border:2px dashed #555; border-radius:12px; padding:60px 40px; max-width:600px; margin:0 auto; cursor:pointer; transition:all 0.3s ease; position:relative; }
+
+.upload-label {
+  font-size:16px; color:#fff; display:block; text-align:left;
+  max-width:600px; margin:0 auto 20px;
+}
+
+.upload-area {
+  background:#2a2a2a; border:2px dashed #555; border-radius:12px;
+  padding:40px; max-width:600px; margin:0 auto;
+  cursor:pointer; transition:all 0.3s ease; position:relative;
+}
 .upload-area:hover { border-color:#777; background:#333; }
 .upload-area.dragover { border-color:#4a9eff; background:#1a3a5c; }
+
+.upload-inner { display:flex; flex-direction:column; align-items:center; justify-content:center; transition:opacity 0.3s; }
 .upload-icon { font-size:48px; color:#666; margin-bottom:20px; }
 .upload-text { font-size:18px; color:#ccc; margin-bottom:10px; }
-.upload-subtext { font-size:14px; color:#999; }
-.browse-btn { background:#4a4a4a; color:#fff; border:none; padding:12px 24px; border-radius:6px; cursor:pointer; font-size:14px; margin-top:20px; transition:background 0.3s; }
+.upload-subtext { font-size:14px; color:#999; text-align:center; }
+
+.file-input { position:absolute; left:-9999px; }
+
+.preview-image {
+  max-width:100%; max-height:250px; border-radius:8px;
+  display:none; margin-bottom:10px; object-fit:contain;
+}
+
+.loading { color:#4a9eff; font-size:16px; margin:10px 0; display:none; }
+.result-text { font-size:18px; color:#4a9eff; margin-top:8px; display:none; }
+
+.browse-btn {
+  background:#4a4a4a; color:#fff; border:none;
+  padding:12px 24px; border-radius:6px; cursor:pointer;
+  font-size:14px; margin-top:20px; transition:background 0.3s;
+}
 .browse-btn:hover { background:#555; }
-.file-input { display:none; }
-.tips-section { max-width:600px; margin:40px auto 0; text-align:left; }
-.tips-header { background-color:#2a1810; border:1px solid #8b4513; border-radius:8px 8px 0 0; padding:15px 20px; cursor:pointer; display:flex; align-items:center; justify-content:space-between; }
-.tips-icon { color:#da4915; margin-right:10px; }
-.tips-title { color:#da4915; font-size:14px; font-weight:500; }
-.tips-toggle { color:#da4915; font-size:12px; transition:transform 0.3s ease; }
-.tips-toggle.rotated { transform:rotate(180deg); }
-.tips-content { background-color:#2a1810; border:1px solid #8b4513; border-top:none; border-radius:0 0 8px 8px; padding:20px; display:none; }
-.tips-content.show { display:block; }
-.tips-list { list-style:none; }
-.tips-list li { color:#ccc; font-size:14px; margin-bottom:12px; padding-left:20px; position:relative; }
-.tips-list li::before { content:"•"; color:#eb0e11; position:absolute; left:0; font-weight:bold; }
-.result-area { margin-top:40px; padding:20px; background:#2a2a2a; border-radius:8px; display:none; }
-.result-area.show { display:block; }
-.preview-image { max-width:300px; max-height:200px; border-radius:8px; margin-bottom:20px; }
-.loading { color:#4a9eff; font-size:16px; margin:20px 0; }
-.result-text { font-size:18px; color:#4a9eff; margin-top:10px; }
 </style>
 </head>
+
 <body>
 <div class="container">
-    <div class="header">
-        <div class="paw-icon">🐾</div>
-        <h1 class="title">Indian Mammal Species<br>Identifier</h1>
-        <p class="description">Upload a clear image of a Mammal from the Indian subcontinent.</p>
-        <p class="description">The AI Model will identify the mammal name.</p>
+  <div class="header">
+    <div class="paw-icon">🐾</div>
+    <h1 class="title">Indian Mammal Species<br>Identifier</h1>
+    <p class="description">Upload a clear image of a Mammal from the Indian subcontinent.</p>
+    <p class="description">The AI Model will identify the mammal name.</p>
+  </div>
+
+  <div class="upload-section">
+    <label class="upload-label">Upload Mammal Image (JPEG/PNG)</label>
+
+    <div class="upload-area" id="uploadArea">
+      <div class="upload-inner" id="uploadInner">
+        <div class="upload-icon">☁️</div>
+        <div class="upload-text">Drag and drop file here</div>
+        <div class="upload-subtext">Limit 200MB per file • JPG, JPEG, PNG</div>
+      </div>
+
+      <img id="previewImage" class="preview-image" alt="Preview">
+      <div id="loadingText" class="loading">Processing image...</div>
+      <div id="resultText" class="result-text"></div>
+
+      <input type="file" id="fileInput" class="file-input" accept="image/*">
     </div>
 
-    <div class="upload-section">
-        <label class="upload-label">Upload Mammal Image (JPEG/PNG)</label>
-        <div class="upload-area" id="uploadArea">
-            <div class="upload-icon">☁️</div>
-            <div class="upload-text">Drag and drop file here</div>
-            <div class="upload-subtext">Limit 200MB per file • JPG, JPEG, PNG</div>
-            <button class="browse-btn" onclick="document.getElementById('fileInput').click()">Browse files</button>
-            <input type="file" id="fileInput" class="file-input" accept="image/*">
-            <button class="browse-btn" id="resetBtn" style="background:#b33203; margin-left:10px;">Reset</button>
-        </div>
+    <div style="margin-top:20px;">
+      <button type="button" id="browseBtn" class="browse-btn">Browse files</button>
+      <button type="button" id="resetBtn" class="browse-btn" style="background:#b33203; margin-left:10px;">Reset</button>
     </div>
-
-    <div class="tips-section">
-        <div class="tips-header" id="tipsHeader">
-            <div style="display:flex; align-items:center;">
-                <span class="tips-icon">💡</span>
-                <span class="tips-title">Tips for Best Results</span>
-            </div>
-            <span class="tips-toggle" id="tipsToggle">▼</span>
-        </div>
-        <div class="tips-content" id="tipsContent">
-            <ul class="tips-list">
-                <li>Use clear, well-lit images</li>
-                <li>Make sure the animal is the main subject</li>
-                <li>Blurred or distant animals may not work well</li>
-                <li>Try cropping unnecessary background</li>
-            </ul>
-        </div>
-    </div>
-
-    <div class="result-area" id="resultArea">
-        <img id="previewImage" class="preview-image" style="display:none;">
-        <div id="loadingText" class="loading" style="display:none;">Analyzing image...</div>
-        <div id="resultText" class="result-text"></div>
-    </div>
+  </div>
 </div>
 
 <script>
-const uploadArea = document.getElementById('uploadArea');
 const fileInput = document.getElementById('fileInput');
-const tipsHeader = document.getElementById('tipsHeader');
-const tipsContent = document.getElementById('tipsContent');
-const tipsToggle = document.getElementById('tipsToggle');
-const resultArea = document.getElementById('resultArea');
+const uploadArea = document.getElementById('uploadArea');
+const uploadInner = document.getElementById('uploadInner');
+const browseBtn = document.getElementById('browseBtn');
+const resetBtn = document.getElementById('resetBtn');
 const previewImage = document.getElementById('previewImage');
 const loadingText = document.getElementById('loadingText');
 const resultText = document.getElementById('resultText');
-const resetBtn = document.getElementById('resetBtn');
 
-// Tips toggle
-tipsHeader.addEventListener('click', () => {
-    tipsContent.classList.toggle('show');
-    tipsToggle.classList.toggle('rotated');
+let isOpeningDialog = false;
+
+// ------------------ Drag & Drop ------------------
+uploadArea.addEventListener('dragover', e => {
+  e.preventDefault();
+  uploadArea.classList.add('dragover');
+});
+uploadArea.addEventListener('dragleave', e => {
+  e.preventDefault();
+  uploadArea.classList.remove('dragover');
+});
+uploadArea.addEventListener('drop', e => {
+  e.preventDefault();
+  uploadArea.classList.remove('dragover');
+  const f = e.dataTransfer.files && e.dataTransfer.files[0];
+  if (f) handleFile(f);
 });
 
-// Drag & drop + click
-uploadArea.addEventListener('dragover', e => { e.preventDefault(); uploadArea.classList.add('dragover'); });
-uploadArea.addEventListener('dragleave', e => { e.preventDefault(); uploadArea.classList.remove('dragover'); });
-uploadArea.addEventListener('drop', e => { e.preventDefault(); uploadArea.classList.remove('dragover'); handleFile(e.dataTransfer.files[0]); });
-uploadArea.addEventListener('click', () => fileInput.click());
-fileInput.addEventListener('change', e => handleFile(e.target.files[0]));
+// ------------------ Click Events ------------------
+uploadArea.addEventListener('click', e => {
+  if (isOpeningDialog) return;
+  if (e.target.closest('button')) return;
+  isOpeningDialog = true;
+  fileInput.click();
+  setTimeout(() => (isOpeningDialog = false), 500);
+});
+browseBtn.addEventListener('click', e => {
+  e.stopImmediatePropagation();
+  if (isOpeningDialog) return;
+  isOpeningDialog = true;
+  fileInput.click();
+  setTimeout(() => (isOpeningDialog = false), 500);
+});
+resetBtn.addEventListener('click', resetAll);
 
-// Reset functionality
-resetBtn.addEventListener('click', () => {
-    previewImage.src = "";
-    previewImage.style.display = 'none';
-    resultText.innerHTML = "";
-    loadingText.style.display = 'none';
-    fileInput.value = "";
-    resultArea.classList.remove('show');
+// ------------------ File Input ------------------
+fileInput.addEventListener('click', () => { fileInput.value = ""; });
+fileInput.addEventListener('change', e => {
+  const f = e.target.files && e.target.files[0];
+  if (f) handleFile(f);
 });
 
-// Handle single file upload and backend call
-function handleFile(file){
-    if(!file.type.startsWith('image/')){ alert('Please upload an image file'); return; }
-    if(file.size > 200*1024*1024){ alert('File size must be less than 200MB'); return; }
+// ------------------ Handle Upload ------------------
+function handleFile(file) {
+  if (!file || !file.type.startsWith('image/')) {
+    alert('Please upload an image file');
+    return;
+  }
+  if (file.size > 200 * 1024 * 1024) {
+    alert('File size must be less than 200MB');
+    return;
+  }
 
-    resultArea.classList.add('show');
-    previewImage.style.display='block';
-    previewImage.src = "";
-    loadingText.style.display='block';
-    resultText.innerHTML='';
+  // Hide text & show image preview
+  uploadInner.style.display = 'none';
+  previewImage.style.display = 'block';
+  loadingText.style.display = 'block';
+  resultText.style.display = 'none';
+  resultText.innerHTML = '';
 
-    // Read file preview first
-    const reader = new FileReader();
-    reader.onload = function(e){
-        previewImage.src = e.target.result;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    previewImage.src = e.target.result;
 
-        // Upload to backend only after preview is ready
-        const formData = new FormData();
-        formData.append('file', file);
+    const formData = new FormData();
+    formData.append('file', file);
 
-        fetch('/predict', { method:'POST', body: formData })
-        .then(res => res.json())
-        .then(data => {
-            loadingText.style.display='none';
-            resultText.innerHTML = data.prediction;
-            resultText.style.color = data.prediction.startsWith("Not a Mammal") ? 'red' : 'lightgreen';
-        })
-        .catch(err => {
-            loadingText.style.display='none';
-            resultText.innerHTML = 'Error: ' + err;
-            resultText.style.color = 'red';
-        });
-    };
-    reader.readAsDataURL(file);
+    fetch('/predict', { method: 'POST', body: formData })
+      .then(res => res.json())
+      .then(data => {
+        loadingText.style.display = 'none';
+        resultText.style.display = 'block';
+        resultText.innerHTML = data.prediction;
+        resultText.style.color = 'lightgreen';
+      })
+      .catch(err => {
+        loadingText.style.display = 'none';
+        resultText.style.display = 'block';
+        resultText.innerHTML = 'Error: ' + err;
+        resultText.style.color = 'red';
+      });
+  };
+  reader.readAsDataURL(file);
+}
+
+// ------------------ Reset ------------------
+function resetAll() {
+  previewImage.src = "";
+  previewImage.style.display = 'none';
+  uploadInner.style.display = 'flex';
+  loadingText.style.display = 'none';
+  resultText.style.display = 'none';
+  resultText.innerHTML = '';
+  fileInput.value = "";
 }
 </script>
 </body>

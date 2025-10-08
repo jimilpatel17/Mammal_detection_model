@@ -41,50 +41,45 @@ def index():
 def predict():
     if 'file' not in request.files:
         return jsonify({'prediction': 'No file uploaded'}), 400
-    
+
     file = request.files['file']
-    
     if file.filename == '':
         return jsonify({'prediction': 'No file selected'}), 400
-    
+
     if file and allowed_file(file.filename):
         filename = secure_filename(file.filename)
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(filepath)
-        
+
         jpeg_filepath = convert_to_jpeg(filepath)
-        
+
+        # Step 1: Check if the image contains a mammal
         mammal_result = mammal_detector.predict(jpeg_filepath, threshold=0.5)
-        
-        if not mammal_result['is_mammal'] and mammal_result['confidence'] < 0.2:
-            species_result = species_classifier.predict(jpeg_filepath, confidence_threshold=0.85)
-        elif not mammal_result['is_mammal']:
-            result_text = f"<span style='color: #ff6b6b;'>Not a Mammal</span><br>Confidence: {(1 - mammal_result['confidence']):.2%}"
+
+        # Step 2: If not a mammal, return red text
+        if not mammal_result['is_mammal']:
             return jsonify({
-                'prediction': result_text,
+                'prediction': '<span style="color:#ff6b6b;">Not a Mammal</span>',
                 'image_url': f'/media/{os.path.basename(jpeg_filepath)}'
             })
-        else:
-            species_result = species_classifier.predict(jpeg_filepath, confidence_threshold=0.85)
-        
+
+        # Step 3: Predict species name
+        species_result = species_classifier.predict(jpeg_filepath, confidence_threshold=0.85)
+
         if species_result['is_confident']:
-            result_text = f"<span style='color: #51cf66;'>Mammal Detected!</span><br>"
-            result_text += f"Species: <strong>{species_result['species']}</strong><br>"
-            result_text += f"Confidence: {species_result['confidence']:.2%}<br>"
-            result_text += f"Source: <em>F1 Score Model</em>"
+            species_name = species_result['species']
         else:
             gemini_result = predict_mammal_with_gemini(jpeg_filepath)
-            result_text = f"<span style='color: #51cf66;'>Mammal Detected!</span><br>"
-            result_text += f"Species: <strong>{gemini_result['species']}</strong><br>"
-            result_text += f"Source: <em>{gemini_result['source']}</em><br>"
-            result_text += f"<small>(F1 model confidence was low: {species_result['confidence']:.2%})</small>"
-        
+            species_name = gemini_result['species']
+
+        # Step 4: Return green text for valid mammal species
         return jsonify({
-            'prediction': result_text,
+            'prediction': f'<span style="color:#51cf66;">{species_name}</span>',
             'image_url': f'/media/{os.path.basename(jpeg_filepath)}'
         })
-    
+
     return jsonify({'prediction': 'Invalid file format'}), 400
+
 
 @app.route('/media/<filename>')
 def media_file(filename):
