@@ -334,13 +334,13 @@ function handleFile(file){
          loadingText.style.display = 'none';
          resultText.style.display = 'block';
          resultText.innerHTML = data.prediction;
-         resultText.style.color = 'lightgreen';
+         resultText.style.color = '#ffffff';
        })
        .catch(err => {
          loadingText.style.display = 'none';
          resultText.style.display = 'block';
          resultText.innerHTML = 'Error: ' + err;
-         resultText.style.color = 'red';
+         resultText.style.color = '#ffffff';
        });
    };
    reader.readAsDataURL(file);
